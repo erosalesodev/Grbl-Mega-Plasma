@@ -1,1 +1,0 @@
--hacer variable glbal de si el thc esta encendido
