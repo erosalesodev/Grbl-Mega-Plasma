@@ -1,0 +1,229 @@
+/*
+* Convert pin value to correspondet bit in port mask
+*/
+// uint8_t digitalPinToBitMask(uint8_t pin){
+//   // A
+//   if(pin>=71 && pin<=78){
+//     return (uint8_t) (78-pin)*-1;
+//   }
+//   // B
+//   else if(pin>=19 && pin<=26){
+//     return (uint8_t) pin-19;
+//   } 
+//   // C
+//   else if(pin>=53 && pin<=60){
+//     return (uint8_t) pin-53;
+//   } 
+//   // D
+//   else if(pin>=43 && pin<=50){
+//     return (uint8_t) pin-43;
+//   }
+//   // E
+//   else if(pin>=2 && pin<=9){
+//     return (uint8_t) pin-2;
+//   }
+//   // F
+//   else if(pin>=90 && pin<=97){
+//     return (uint8_t) (97-pin)*-1;
+//   }
+//   // G
+//   else if(pin>=0 && pin<=5){
+//     if(pin==51)return (uint8_t) 0;
+//     else if(pin==52)return (uint8_t) 1;
+//     else if(pin==70)return (uint8_t) 2;
+//     else if(pin==28)return (uint8_t) 3;
+//     else if(pin==29)return (uint8_t) 4;
+//     else if(pin==1)return (uint8_t) 5;
+//   }
+//   // H
+//   else if(pin>=12 && pin<=18){
+//     return (uint8_t) pin-12;
+//   }
+//   // J
+//   else if((pin>=63 && pin<=69) || pin==79){
+//     if(pin>=63 && pin<=69)return (uint8_t) pin-63;
+//     else if(pin==78) return 7;
+//   }
+//   // K
+//   else if(pin>=82 && pin<=89){
+//     return (uint8_t) (pin-89)*-1;
+//   }
+//   // L
+//   else if(pin>=35 && pin<=42){
+//     return (uint8_t) pin-35;
+//   }
+// }
+
+// /*
+// * Convert pin value to port value
+// */
+// uint8_t* digitalPinToPort(uint8_t pin){
+
+//   // A
+//   if(pin>=71 && pin<=78){
+//     return (uint16_t) &PORTA;
+//   }
+//   // B
+//   else if(pin>=19 && pin<=26){
+//     return (uint16_t) &PORTB;
+//   } 
+//   // C
+//   else if(pin>=53 && pin<=60){
+//     return (uint16_t) &PORTC;
+//   } 
+//   // D
+//   else if(pin>=43 && pin<=50){
+//     return (uint16_t) &PORTD;
+//   }
+//   // E
+//   else if(pin>=2 && pin<=9){
+//     return (uint16_t) &PORTE;
+//   }
+//   // F
+//   else if(pin>=90 && pin<=97){
+//     return (uint16_t) &PORTF;
+//   }
+//   // G
+//   else if(pin>=0 && pin<=5){
+//     return (uint16_t) &PORTG;
+//   }
+//   // H
+//   else if(pin>=12 && pin<=18){
+//     return (uint16_t) &PORTH;
+//   }
+//   // J
+//   else if((pin>=63 && pin<=69) || pin==79){
+//     return (uint16_t) &PORTJ;
+//   }
+//   // K
+//   else if(pin>=82 && pin<=89){
+//     return (uint16_t) &PORTK;
+//   }
+//   // L
+//   else if(pin>=35 && pin<=42){
+//     return (uint16_t) &PORTL;
+//   }
+// }
+// /*
+// * Convert pin value to mode register value
+// */
+// uint8_t* portModeRegister(uint8_t pin){
+//   // A
+//   if(pin>=71 && pin<=78){
+//     return (uint16_t) &DDRA;
+//   }
+//   // B
+//   else if(pin>=19 && pin<=26){
+//     return (uint16_t) &DDRB;
+//   } 
+//   // C
+//   else if(pin>=53 && pin<=60){
+//     return (uint16_t) &DDRC;
+//   } 
+//   // D
+//   else if(pin>=43 && pin<=50){
+//     return (uint16_t) &DDRD;
+//   }
+//   // E
+//   else if(pin>=2 && pin<=9){
+//     return (uint16_t) &DDRE;
+//   }
+//   // F
+//   else if(pin>=90 && pin<=97){
+//     return (uint16_t) &DDRF;
+//   }
+//   // G
+//   else if(pin>=0 && pin<=5){
+//     return (uint16_t) &DDRG;
+//   }
+//   // H
+//   else if(pin>=12 && pin<=18){
+//     return (uint16_t) &DDRH;
+//   }
+//   // J
+//   else if((pin>=63 && pin<=69) || pin==79){
+//     return (uint16_t) &DDRJ;
+//   }
+//   // K
+//   else if(pin>=82 && pin<=89){
+//     return (uint16_t) &DDRK;
+//   }
+//   // L
+//   else if(pin>=35 && pin<=42){
+//     return (uint16_t) &DDRL;
+//   }
+// }
+
+// /*
+// * Handle pin mode configuration
+// */
+// void pinMode(uint8_t pin, uint8_t mode)
+// {
+//        // Get information from pin
+//         volatile uint8_t *reg,*port,bit;
+//         reg = portModeRegister(pin);
+//         port = digitalPinToPort(pin);
+//         bit = digitalPinToBitMask(pin);
+
+//         if (mode == 0) {
+//     // When the mode is INPUT
+//     // make the bit of DDR to 0, and the bit of PORT to 0
+//                 uint8_t oldSREG = SREG;
+//                 cli();
+//                 *reg &= ~(1<<bit);
+//                 *port &= ~(1<<bit);
+//                 SREG = oldSREG;
+//         } 
+//       else if (mode == 1) {
+//     // When the mode is INPUT_PULLUP
+//     // make the bit of DDR to 0, and the bit of PORT to 1
+//                 uint8_t oldSREG = SREG;
+//                 cli();
+//                 *reg &= ~(1<<bit);
+//                 *port |= (1<<bit);
+//                 SREG = oldSREG;
+//         } else {
+//     // When the mode is OUTPUT(actually the mode is not INPUT or INPUT_PULLUP)
+//     // make the bit of DDR to 1
+//                 uint8_t oldSREG = SREG;
+//                 cli();
+//                 *reg |= (1<<bit);
+//                 SREG = oldSREG;
+//         }
+// }
+
+// /*
+// * Manage digital write in GPIO ports
+// */
+// void digitalWrite(uint8_t pin, uint8_t val)
+// {
+//         // Get information from pin
+//         volatile uint8_t *port,bit;
+//         port = digitalPinToPort(pin);
+//         bit = digitalPinToBitMask(pin);
+      
+//         uint8_t oldSREG = SREG;
+//         cli();
+
+//         if (val == 0) {
+//                 *port &= ~(1<<bit);
+//         } else {
+//                 *port |= (1<<bit);
+//         }
+
+//         SREG = oldSREG;
+// }
+// /*
+// * Manage digital read in GPIO ports
+// */
+// int digitalRead(uint8_t pin)
+// {
+	
+// 	// Get information from pin
+//         volatile uint8_t *port,bit;
+//         port = digitalPinToPort(pin);
+//         bit = digitalPinToBitMask(pin);
+
+// 	if (port & (1<<bit)) return HIGH;
+// 	return LOW;
+// }

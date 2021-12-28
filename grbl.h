@@ -67,6 +67,7 @@
 #include "timer.h"
 #include "thc.h"
 #include "thcreports.h"
+#include "ports.h"
 
 // ---------------------------------------------------------------------------------------
 // COMPILE-TIME ERROR CHECKING OF DEFINE VALUES:

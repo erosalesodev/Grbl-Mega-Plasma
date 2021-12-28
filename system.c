@@ -208,7 +208,7 @@ uint8_t system_execute_line(char *line)
           break;
 // *--------------------- THC Comunication Protocol
          case 'T':
-          thcdebug(line);
+          thc_debug(line);
         break;
 // *--------------------------------------------------
 

@@ -6,6 +6,6 @@
 #ifndef thcreports_h
 #define thcreports_h
 
-        void thcdebug(char *line);
+        void thc_debug(char *line);
          
 #endif
