@@ -176,13 +176,7 @@ void report_init_message()
 void report_grbl_help() {
   printPgmString(PSTR("[HLP:$$ $# $G $I $N $x=val $Nx=line $J=line $SLP $C $X $H ~ ! ? ctrl-x]\r\n"));    
 }
-/***********************************/
-void report_thc(){
-  printPgmString(PSTR("$133="));
-   print_uint32_base10((uint16_t)analogSetVal);
-   printPgmString(PSTR("\r\n"));
-}
-/***********************************/
+
 // Grbl global settings print out.
 // NOTE: The numbering scheme here must correlate to storing in settings.c
 void report_grbl_settings() {
@@ -225,7 +219,8 @@ void report_grbl_settings() {
     val += AXIS_SETTINGS_INCREMENT;
   }
 
-  report_thc();
+  // If THC is working report params
+  if(thcWorking)report_thc();
 }
 
 
@@ -603,12 +598,16 @@ void report_realtime_status()
     }
   #endif
 
-  printPgmString(PSTR("|THC:"));
+  //THC report
+  if(thcWorking){
+     printPgmString(PSTR("|THC:"));
   print_uint32_base10((uint16_t)analogSetVal);
   serial_write(',');
    print_uint32_base10((uint16_t)analogVal);
-
+  }
+ 
   serial_write('>');
+
   report_util_line_feed();
 }
 

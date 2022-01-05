@@ -43,7 +43,7 @@ void adc_setup(){
     ADMUX &= 0b11110000;
     // Set MUX3..0 in ADMUX (0x7C) to read from 
     // ADC_CHANNEL_SELECT variable (Internal temp)
-    ADMUX |= ADC_CHANNEL_SELECT;
+    ADMUX |= ADC_THC_CHANNEL_SELECT;
 
     // Set ADEN in ADCSRA (0x7A) to enable the ADC.
     // Note, this instruction takes 12 ADC clocks to execute

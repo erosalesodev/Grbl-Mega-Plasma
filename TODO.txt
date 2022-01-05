@@ -1,0 +1,8 @@
+
+PWM en un pin
+Lear adc generico
+Alarmas por pin
+
+
+Bloquear el moviemietno de z por comando con thc activado
+

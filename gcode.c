@@ -111,8 +111,8 @@ uint8_t gc_execute_line(char *line)
   uint16_t mantissa = 0;
   if (gc_parser_flags & GC_PARSER_JOG_MOTION) { char_counter = 3; } // Start parsing after `$J=`
   else { char_counter = 0; }
-
-  while (line[char_counter] != 0 && !(letter=='M' && int_value==42)) { // Loop until no more g-code words in line.
+// Added ignore M42 and M226 command to procces block in ports.c
+  while (line[char_counter] != 0 && !(letter=='M' && (int_value==42 || int_value==226))) { // Loop until no more g-code words in line.
 
     // Import the next g-code word, expecting a letter followed by a value. Otherwise, error out.
     letter = line[char_counter];
@@ -277,6 +277,12 @@ uint8_t gc_execute_line(char *line)
           case 42:
           //Execute M42 function and if the pin is blocked return error
             if(!ports_manage(line)){FAIL(STATUS_GCODE_PIN_LOCKED);}
+          break;
+          //-----------------------------------
+           // Implementing M226
+          //-----------------------------------
+          case 226:
+            waintForPin(line);
           break;
           //-----------------------------------
           default: FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND); // [Unsupported M command]

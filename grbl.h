@@ -66,7 +66,7 @@
 #include "adc.h"
 #include "timer.h"
 #include "thc.h"
-#include "thcreports.h"
+#include "thc_reports.h"
 #include "ports.h"
 
 // ---------------------------------------------------------------------------------------

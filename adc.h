@@ -5,9 +5,9 @@
 #ifndef adc_h
 #define adc_h
 
-        // ADC Chanel selector
+        // ADC THC Chanel selector
         // Do not set above 15! You will overrun other parts of ADMUX.
-        #define ADC_CHANNEL_SELECT 3;
+        #define ADC_THC_CHANNEL_SELECT 3;
 
 
         volatile uint16_t analogVal;            // Value to store analog result
