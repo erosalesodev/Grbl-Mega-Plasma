@@ -30,7 +30,7 @@ void system_init()
     CONTROL_PORT |= CONTROL_MASK;   // Enable internal pull-up resistors. Normal high operation.
   #endif
   CONTROL_PCMSK |= CONTROL_MASK;  // Enable specific pins of the Pin Change Interrupt
-  PCICR |= (1 << CONTROL_INT);   // Enable Pin Change Interrupt
+  PCICR |= (1 << CONTROL_INT);   // Enable Pin Change Interrupt*/
 }
 
 
@@ -40,15 +40,18 @@ void system_init()
 uint8_t system_control_get_state()
 {
   uint8_t control_state = 0;
-  uint8_t pin = (CONTROL_PIN & CONTROL_MASK);
+  uint8_t pin = (CONTROL_PIN & CONTROL_MASK) ^ CONTROL_MASK;
   #ifdef INVERT_CONTROL_PIN_MASK
     pin ^= INVERT_CONTROL_PIN_MASK;
   #endif
   if (pin) {
-    if (bit_isfalse(pin,(1<<CONTROL_SAFETY_DOOR_BIT))) { control_state |= CONTROL_PIN_INDEX_SAFETY_DOOR; }
-    if (bit_isfalse(pin,(1<<CONTROL_RESET_BIT))) { control_state |= CONTROL_PIN_INDEX_RESET; }
-    if (bit_isfalse(pin,(1<<CONTROL_FEED_HOLD_BIT))) { control_state |= CONTROL_PIN_INDEX_FEED_HOLD; }
-    if (bit_isfalse(pin,(1<<CONTROL_CYCLE_START_BIT))) { control_state |= CONTROL_PIN_INDEX_CYCLE_START; }
+    #ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
+      if (bit_istrue(pin,(1<<CONTROL_SAFETY_DOOR_BIT))) { control_state |= CONTROL_PIN_INDEX_SAFETY_DOOR; }
+    #else
+      if (bit_istrue(pin,(1<<CONTROL_FEED_HOLD_BIT))) { control_state |= CONTROL_PIN_INDEX_FEED_HOLD; }
+    #endif
+    if (bit_istrue(pin,(1<<CONTROL_RESET_BIT))) { control_state |= CONTROL_PIN_INDEX_RESET; }
+    if (bit_istrue(pin,(1<<CONTROL_CYCLE_START_BIT))) { control_state |= CONTROL_PIN_INDEX_CYCLE_START; }
   }
   return(control_state);
 }
@@ -60,17 +63,24 @@ uint8_t system_control_get_state()
 // directly from the incoming serial data stream.
 ISR(CONTROL_INT_vect)
 {
+  
   uint8_t pin = system_control_get_state();
+  
   if (pin) {
     if (bit_istrue(pin,CONTROL_PIN_INDEX_RESET)) {
       mc_reset();
-    } else if (bit_istrue(pin,CONTROL_PIN_INDEX_CYCLE_START)) {
+    }
+    if (bit_istrue(pin,CONTROL_PIN_INDEX_CYCLE_START)) {
       bit_true(sys_rt_exec_state, EXEC_CYCLE_START);
-    } else if (bit_istrue(pin,CONTROL_PIN_INDEX_FEED_HOLD)) {
-      bit_true(sys_rt_exec_state, EXEC_FEED_HOLD); 
-    } else if (bit_istrue(pin,CONTROL_PIN_INDEX_SAFETY_DOOR)) {
-      bit_true(sys_rt_exec_state, EXEC_SAFETY_DOOR);
-    } 
+    }
+    #ifndef ENABLE_SAFETY_DOOR_INPUT_PIN
+      if (bit_istrue(pin,CONTROL_PIN_INDEX_FEED_HOLD)) {
+        bit_true(sys_rt_exec_state, EXEC_FEED_HOLD);
+    #else
+      if (bit_istrue(pin,CONTROL_PIN_INDEX_SAFETY_DOOR)) {
+        bit_true(sys_rt_exec_state, EXEC_SAFETY_DOOR);
+    #endif
+    }
   }
 }
 
@@ -78,7 +88,11 @@ ISR(CONTROL_INT_vect)
 // Returns if safety door is ajar(T) or closed(F), based on pin state.
 uint8_t system_check_safety_door_ajar()
 {
+  #ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
     return(system_control_get_state() & CONTROL_PIN_INDEX_SAFETY_DOOR);
+  #else
+    return(false); // Input pin not enabled, so just return that it's closed.
+  #endif
 }
 
 
@@ -115,7 +129,6 @@ uint8_t system_execute_line(char *line)
   float parameter, value;
   switch( line[char_counter] ) {
     case 0 : report_grbl_help(); break;
-    
     case 'J' : // Jogging
       // Execute only if in IDLE or JOG states.
       if (sys.state != STATE_IDLE && sys.state != STATE_JOG) { return(STATUS_IDLE_ERROR); }
@@ -159,7 +172,10 @@ uint8_t system_execute_line(char *line)
       break;
     default :
       // Block any system command that requires the state as IDLE/ALARM. (i.e. EEPROM, homing)
-      if ( !(sys.state == STATE_IDLE || sys.state == STATE_ALARM) ) { return(STATUS_IDLE_ERROR); }
+      if (line[1] != 'T') //THC can and should be controlled during program run...
+      {
+        if ( !(sys.state == STATE_IDLE || sys.state == STATE_ALARM) ) { return(STATUS_IDLE_ERROR); }
+      }
       switch( line[1] ) {
         case '#' : // Print Grbl NGC parameters
           if ( line[2] != 0 ) { return(STATUS_INVALID_STATEMENT); }
@@ -206,13 +222,24 @@ uint8_t system_execute_line(char *line)
           #endif
           }
           break;
-// *--------------------- THC Comunication Protocol
-         case 'T':
-          thc_debug(line);
+        case 'T':
+          //printPgmString(PSTR("THC control!\n"));
+          if (line[2] == '=')
+          {
+            char v[5];
+            uint8_t vi = 0;
+            for (uint8_t i = 3; i < (3 + 5); i++)
+            {
+              if (line[i] == '\r' || line[i] == '\n') break;
+              v[vi] = line[i];
+              vi++;
+            }
+            analogSetVal = atoi(v);
+            //printPgmString(PSTR("Voltage = "));
+            //print_uint32_base10((uint16_t)analogSetVal);
+            //printPgmString(PSTR("\r\n"));
+          }
         break;
-// *--------------------------------------------------
-
-
         case 'R' : // Restore defaults [IDLE/ALARM]
           if ((line[2] != 'S') || (line[3] != 'T') || (line[4] != '=') || (line[6] != 0)) { return(STATUS_INVALID_STATEMENT); }
           switch (line[5]) {
@@ -254,7 +281,6 @@ uint8_t system_execute_line(char *line)
             do {
               line[char_counter-helper_var] = line[char_counter];
             } while (line[char_counter++] != 0);
-            if (char_counter > EEPROM_LINE_SIZE) { return(STATUS_LINE_LENGTH_EXCEEDED); }
             // Execute gcode block to ensure block is valid.
             helper_var = gc_execute_line(line); // Set helper_var to returned status code.
             if (helper_var) { return(helper_var); }

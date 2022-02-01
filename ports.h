@@ -1,12 +1,27 @@
 /*
-* ports.h POrts control
+* ports.h Ports control
 */
 #ifndef ports_h
 #define ports_h
-            bool ports_manage(char *line);                  // Manage protocol for ports usages
-            void waintForPin(char *line);                   // Implements waint for pin
+            uint8_t ports_manage(char *line);                     // Manage protocol for ports usages
+            uint8_t waintForPinSync(char *line);                  // Implements waint for pin Sync
+            uint8_t waintForPinAsync(char *line);                 // Implements waint for pin Async
+            void alarmsInit();                                    // Initialize alarms
+            void alarmsDisable();                                 // Initialize alarms
+            void alarmDisable(char port,uint8_t bit);             // Disable alarm  
+            void alarmEnable(char port,uint8_t bit);              // Enable alarm
+            void movementRestore();                               // Restore movement  
 #endif
 
+// Port interruptions
+#define POWER_SOURCE_FAULT_BIT 5
+#define ALARM_TOURCH_SIGNAL_BIT 6
+#define ALARM_OUT_SERVO_X1_BIT 7
+#define PORTB_PCINTERRUPT_STATE_MASK 0b10111000
+
+bool alarmTriggered;
+char activeAlarmPort;
+uint8_t activeAlarmBit;
 
 // Maping work pins
 #define STEP_X 54

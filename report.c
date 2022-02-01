@@ -161,6 +161,17 @@ void report_feedback_message(uint8_t message_code)
       printPgmString(PSTR("Restoring spindle")); break;
     case MESSAGE_SLEEP_MODE:
       printPgmString(PSTR("Sleeping")); break;
+    case MESSAGE_POWER_SOURCE_FAULT:
+      printPgmString(PSTR("Power Fault")); break;
+    case MESSAGE_ALARM_OUT_SERVO_X1:
+      printPgmString(PSTR("Alarm Out Servo X1")); break; 
+    case MESSAGE_ALARM_OUT_SERVO_X2:
+      printPgmString(PSTR("Alarm Out Servo X2")); break; 
+    case MESSAGE_ALARM_OUT_SERVO_Y:
+      printPgmString(PSTR("Alarm Out Servo Y")); break; 
+    case MESSAGE_ALARM_TOURCH_SIGNAL:
+      printPgmString(PSTR("Alarm Tourch Signal")); break; 
+
   }
   report_util_feedback_line_feed();
 }
@@ -169,7 +180,8 @@ void report_feedback_message(uint8_t message_code)
 // Welcome message
 void report_init_message()
 {
-  printPgmString(PSTR("\r\nGrbl " GRBL_VERSION " ['$' for help]\r\n"));
+  // *---------------- Wellcome message modified--------------------------------* 
+  printPgmString(PSTR("\r\nGrbl-Mega-Plasma Firware v1.0 " GRBL_VERSION " ['$' for help]\r\n"));
 }
 
 // Grbl help message

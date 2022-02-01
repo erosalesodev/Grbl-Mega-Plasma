@@ -227,6 +227,7 @@ void protocol_exec_rt_system()
     // loop until system reset/abort.
     sys.state = STATE_ALARM; // Set system alarm state
     report_alarm_message(rt_exec);
+   
     // Halt everything upon a critical event flag. Currently hard and soft limits flag this.
     if ((rt_exec == EXEC_ALARM_HARD_LIMIT) || (rt_exec == EXEC_ALARM_SOFT_LIMIT)) {
       report_feedback_message(MESSAGE_CRITICAL_EVENT);
@@ -257,6 +258,7 @@ void protocol_exec_rt_system()
       system_clear_exec_state_flag(EXEC_STATUS_REPORT);
     }
 
+   
     // NOTE: Once hold is initiated, the system immediately enters a suspend state to block all
     // main program processes until either reset or resumed. This ensures a hold completes safely.
     if (rt_exec & (EXEC_MOTION_CANCEL | EXEC_FEED_HOLD | EXEC_SAFETY_DOOR | EXEC_SLEEP)) {
@@ -289,7 +291,9 @@ void protocol_exec_rt_system()
         // Execute a feed hold with deceleration, if required. Then, suspend system.
         if (rt_exec & EXEC_FEED_HOLD) {
           // Block SAFETY_DOOR, JOG, and SLEEP states from changing to HOLD state.
-          if (!(sys.state & (STATE_SAFETY_DOOR | STATE_JOG | STATE_SLEEP))) { sys.state = STATE_HOLD; }
+          if (!(sys.state & (STATE_SAFETY_DOOR | STATE_JOG | STATE_SLEEP))) { 
+                sys.state = STATE_HOLD; 
+            }
         }
 
         // Execute a safety door stop with a feed hold and disable spindle/coolant.
@@ -337,6 +341,7 @@ void protocol_exec_rt_system()
       // Block if called at same time as the hold commands: feed hold, motion cancel, and safety door.
       // Ensures auto-cycle-start doesn't resume a hold without an explicit user-input.
       if (!(rt_exec & (EXEC_FEED_HOLD | EXEC_MOTION_CANCEL | EXEC_SAFETY_DOOR))) {
+       
         // Resume door state when parking motion has retracted and door has been closed.
         if ((sys.state == STATE_SAFETY_DOOR) && !(sys.suspend & SUSPEND_SAFETY_DOOR_AJAR)) {
           if (sys.suspend & SUSPEND_RESTORE_COMPLETE) {
@@ -352,12 +357,14 @@ void protocol_exec_rt_system()
         }
         // Cycle start only when IDLE or when a hold is complete and ready to resume.
         if ((sys.state == STATE_IDLE) || ((sys.state & STATE_HOLD) && (sys.suspend & SUSPEND_HOLD_COMPLETE))) {
+          
           if (sys.state == STATE_HOLD && sys.spindle_stop_ovr) {
             sys.spindle_stop_ovr |= SPINDLE_STOP_OVR_RESTORE_CYCLE; // Set to restore in suspend routine and cycle start after.
           } else {
             // Start cycle only if queued motions exist in planner buffer and the motion is not canceled.
             sys.step_control = STEP_CONTROL_NORMAL_OP; // Restore step control to normal operation
             if (plan_get_current_block() && bit_isfalse(sys.suspend,SUSPEND_MOTION_CANCEL)) {
+               
               sys.suspend = SUSPEND_DISABLE; // Break suspend state.
               sys.state = STATE_CYCLE;
               st_prep_buffer(); // Initialize step segment buffer before beginning cycle.

@@ -50,6 +50,7 @@ int main(void)
   millis_timer=0;
   timer_setup();
   
+  
 
   // Initialize system upon power-up.
   serial_init();   // Setup serial baud rate and interrupts
@@ -112,8 +113,7 @@ int main(void)
     plan_sync_position();
     gc_sync_position();
 
-    // *---------------- Wellcome message --------------------------------* 
-    printString("Grbl-Thc-Integration Firware v1.0");
+    
     // Print welcome message. Indicates an initialization has occured at power-up or with a reset.
     report_init_message();
 

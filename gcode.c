@@ -109,10 +109,13 @@ uint8_t gc_execute_line(char *line)
   float value;
   uint8_t int_value = 0;
   uint16_t mantissa = 0;
+  //For new Mcommands implmented
+  uint8_t result; //Result of process function
+
   if (gc_parser_flags & GC_PARSER_JOG_MOTION) { char_counter = 3; } // Start parsing after `$J=`
   else { char_counter = 0; }
-// Added ignore M42 and M226 command to procces block in ports.c
-  while (line[char_counter] != 0 && !(letter=='M' && (int_value==42 || int_value==226))) { // Loop until no more g-code words in line.
+// Added ignore process blocks M command implemented
+  while (line[char_counter] != 0 && !(letter=='M' && (int_value==42 || int_value==219 || (int_value>=227 && int_value<=233)))) { // Loop until no more g-code words in line.
 
     // Import the next g-code word, expecting a letter followed by a value. Otherwise, error out.
     letter = line[char_counter];
@@ -272,19 +275,66 @@ uint8_t gc_execute_line(char *line)
               gc_block.modal.override = OVERRIDE_PARKING_MOTION;
               break;
           #endif
+          //-----------------------------------
           // Implementing M42
           //-----------------------------------
           case 42:
-          //Execute M42 function and if the pin is blocked return error
-            if(!ports_manage(line)){FAIL(STATUS_GCODE_PIN_LOCKED);}
+          //Execute M42 function and if the pin is blocked or bad format is reported return error
+          result = ports_manage(line);
+            if(result==2){FAIL(STATUS_GCODE_PIN_LOCKED);}
+            else if(result==1){FAIL(STATUS_EXPECTED_COMMAND_LETTER);}
           break;
           //-----------------------------------
-           // Implementing M226
+          // Implementing M129
+          //-----------------------------------
+          case 219:
+          result = pwmManage(line);
+          if(result==2){FAIL(STATUS_GCODE_PIN_LOCKED);}
+          else if(result==1){FAIL(STATUS_EXPECTED_COMMAND_LETTER);}
+          break;
+          //-----------------------------------
+          // Implementing M226
           //-----------------------------------
           case 226:
-            waintForPin(line);
+          result = waintForPinAsync(line);
+          if(result==2){FAIL(STATUS_GCODE_PIN_LOCKED);}
+          else if(result==1){FAIL(STATUS_INVALID_STATEMENT);}
           break;
           //-----------------------------------
+          // Implementing M227
+          //-----------------------------------
+          case 227:
+          result = waintForPinSync(line);
+          if(result==2){FAIL(STATUS_GCODE_PIN_LOCKED);}
+          else if(result==1){FAIL(STATUS_INVALID_STATEMENT);}
+          break;
+          //-----------------------------------
+          // Implementing M229
+          //-----------------------------------
+          case 229:
+            alarmsInit();
+          break;
+          //-----------------------------------
+          // Implementing M230
+          //-----------------------------------
+          case 230:
+            alarmsDisable();
+          break;
+          //-----------------------------------
+          // Implementing M231
+          //-----------------------------------
+          case 231:
+            // alarmsDisable();
+          break;
+          //-----------------------------------
+          // Implementing M232
+          //-----------------------------------
+          case 232:
+            // alarmsDisable();
+          break;
+          case 233:
+            movementRestore();
+          break;
           default: FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND); // [Unsupported M command]
         }
 

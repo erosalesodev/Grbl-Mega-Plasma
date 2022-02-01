@@ -150,7 +150,9 @@ ISR(SERIAL_RX)
   switch (data) {
     case CMD_RESET:         mc_reset(); break; // Call motion control reset routine.
     case CMD_STATUS_REPORT: system_set_exec_state_flag(EXEC_STATUS_REPORT); break; // Set as true
-    case CMD_CYCLE_START:   system_set_exec_state_flag(EXEC_CYCLE_START); break; // Set as true
+    case CMD_CYCLE_START:   system_set_exec_state_flag(EXEC_CYCLE_START);          // Set as true
+                            if(alarmTriggered)alarmEnable(activeAlarmPort,activeAlarmBit);
+                            break; 
     case CMD_FEED_HOLD:     system_set_exec_state_flag(EXEC_FEED_HOLD); break; // Set as true
     default :
       if (data > 0x7F) { // Real-time control characters are extended ACSII only.

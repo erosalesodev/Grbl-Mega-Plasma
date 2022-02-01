@@ -84,6 +84,15 @@
 #define MESSAGE_RESTORE_DEFAULTS 9
 #define MESSAGE_SPINDLE_RESTORE 10
 #define MESSAGE_SLEEP_MODE 11
+// Alarms code implemented
+#define MESSAGE_POWER_SOURCE_FAULT 15
+#define MESSAGE_ALARM_OUT_SERVO_X1 16
+#define MESSAGE_ALARM_OUT_SERVO_X2 17
+#define MESSAGE_ALARM_OUT_SERVO_Y 18
+#define MESSAGE_ALARM_TOURCH_SIGNAL 19
+
+
+
 
 // Prints system status messages.
 void report_status_message(uint8_t status_code);
