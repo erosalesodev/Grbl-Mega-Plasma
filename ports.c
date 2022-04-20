@@ -242,19 +242,19 @@ void alarmsInit()
 {
   alarmTriggered = false;
   /*
-  +----------+------+--------------------+----------------------+
-  | PIN name | Port | Digital pin number |       Alarm          |
-  +----------+------+--------------------+----------------------+ 
-  |    A13   |  PK5 |       84           |  Alarm OUT Servo X2  |
-  +----------+------+--------------------+----------------------+ 
-  |    A14   |  PK6 |       83           |  Alarm OUT Servo Y   |
-  +----------+------+--------------------+----------------------+
-  |    D11   |  PB5 |       24           |  Power Source fault  |
-  +----------+------+--------------------+----------------------+ 
-  |    D12   |  PB6 |       25           |  Tourch Signal       |
-  +----------+------+--------------------+----------------------+ 
-  |    D13   |  PB7 |       26           |  Alarm OUT Servo X1  |
-  +----------+------+--------------------+----------------------+ 
+  +----------+------+--------------------+----------------------+-----------+
+  | PIN name | Port | Digital pin number |       Alarm          |  INTR     |
+  +----------+------+--------------------+----------------------+-----------+
+  |    A13   |  PK5 |       84           |  Alarm OUT Servo X2  |  PCINT21  |
+  +----------+------+--------------------+----------------------+-----------+ 
+  |    A14   |  PK6 |       83           |  Alarm OUT Servo Y   |  PCINT22  |
+  +----------+------+--------------------+----------------------+-----------+
+  |    D11   |  PB5 |       24           |  Power Source fault  |  PCINT5   |
+  +----------+------+--------------------+----------------------+-----------+ 
+  |    D12   |  PB6 |       25           |  Tourch Signal       |  PCINT6   |
+  +----------+------+--------------------+----------------------+-----------+ 
+  |    D13   |  PB7 |       26           |  Alarm OUT Servo X1  |  PCINT7   |
+  +----------+------+--------------------+----------------------+-----------+ 
   */ 
  
  // Port B Configuration
@@ -262,6 +262,12 @@ void alarmsInit()
   PORTB |= ((1<<POWER_SOURCE_FAULT_BIT)|(1<<ALARM_TOURCH_SIGNAL_BIT)|(1<<ALARM_OUT_SERVO_X1_BIT));   // Enable internal pull-up resistors. Normal high operation.
   PCMSK0 |= ((1<<POWER_SOURCE_FAULT_BIT)|(1<<ALARM_TOURCH_SIGNAL_BIT)|(1<<ALARM_OUT_SERVO_X1_BIT));  // Enable specific pins of the Pin Change Interrupt
   PCICR |= (1 << PCIE0);   // Enable Pin Change Interrupt
+
+  // Port K Configuration
+  DDRK &= ~((1<<ALARM_OUT_SERVO_X2_BIT)|(1<<ALARM_OUT_SERVO_Y_BIT)); // Configure as input pins
+  PORTK |= ((1<<ALARM_OUT_SERVO_X2_BIT)|(1<<ALARM_OUT_SERVO_Y_BIT));   // Enable internal pull-up resistors. Normal high operation.
+  PCMSK2 |= ((1<<ALARM_OUT_SERVO_X2_BIT)|(1<<ALARM_OUT_SERVO_Y_BIT));  // Enable specific pins of the Pin Change Interrupt
+  PCICR |= (1 << PCIE2);   // Enable Pin Change Interrupt
 }
 
 /**
@@ -269,7 +275,12 @@ void alarmsInit()
  * 
  */
 void alarmsDisable(){
-  PCICR &= ~(1 << PCIE0);   // Disable Pin Change Interrupt
+  
+  // Disable Specific Pin Change Interrupt Port B
+  PCMSK0 &= ~((1<<POWER_SOURCE_FAULT_BIT)|(1<<ALARM_TOURCH_SIGNAL_BIT)|(1<<ALARM_OUT_SERVO_X1_BIT));  // Disable specific pins of the Pin Change Interrupt
+
+   // Disable Specific Pin Change Interrupt Port K
+  PCMSK2 &= ~((1<<ALARM_OUT_SERVO_X2_BIT)|(1<<ALARM_OUT_SERVO_Y_BIT));  // Enable specific pins of the Pin Change Interrupt
 }
 
 /**
@@ -281,6 +292,10 @@ void alarmsDisable(){
 void alarmDisable(char port,uint8_t bit){
   if(port=='B'){
     PCMSK0 &= ~(1<<bit);
+  }else{
+    if(port=='K'){
+      PCMSK2 &= ~(1<<bit);
+    }
   }
 }
 
@@ -293,6 +308,10 @@ void alarmDisable(char port,uint8_t bit){
 void alarmEnable(char port,uint8_t bit){
   if(port=='B'){
     PCMSK0 |= (1<<bit);
+  }else{
+    if(port=='K'){
+      PCMSK2 |= (1<<bit);
+    }
   }
 
   alarmTriggered = false;
@@ -340,4 +359,52 @@ ISR(PCINT0_vect)
         report_feedback_message(MESSAGE_ALARM_OUT_SERVO_X1);
       }
     
+}
+
+/**
+ * Disable Stepper, assume disable 0 logic
+ * 
+ * */
+void stepperDisable(char *line){
+   
+    if(line[3]){
+     if(line[3]=='X'){
+       // X Disable - Pin D38
+         STEPPER_DISABLE_PORT(0) &= ~(1 << STEPPER_DISABLE_BIT(0));
+     }else if(line[3]=='Y'){
+       // Y Disable - Pin A2
+        STEPPER_DISABLE_PORT(1) &= ~(1 << STEPPER_DISABLE_BIT(1));
+     }else if(line[3]=='Z'){
+       // Z Disable - Pin A8
+        STEPPER_DISABLE_PORT(2) &= ~(1 << STEPPER_DISABLE_BIT(2));
+     }
+    }else{
+      STEPPER_DISABLE_PORT(0) &= ~(1 << STEPPER_DISABLE_BIT(0));
+      STEPPER_DISABLE_PORT(1) &= ~(1 << STEPPER_DISABLE_BIT(1));
+      STEPPER_DISABLE_PORT(2) &= ~(1 << STEPPER_DISABLE_BIT(2));
+    }
+}
+
+/**
+ * Enable Stepper, assume enable 1 logic
+ * 
+ * */
+void stepperEnable(char *line){
+   
+    if(line[3]){
+     if(line[3]=='X'){
+       // X Enable - Pin D38
+         STEPPER_DISABLE_PORT(0) |= (1 << STEPPER_DISABLE_BIT(0));
+     }else if(line[3]=='Y'){
+       // Y Enable - Pin A2
+        STEPPER_DISABLE_PORT(1) |= (1 << STEPPER_DISABLE_BIT(1));
+     }else if(line[3]=='Z'){
+       // Z Enable - Pin A8
+        STEPPER_DISABLE_PORT(2) |= (1 << STEPPER_DISABLE_BIT(2));
+     }
+    }else{
+      STEPPER_DISABLE_PORT(0) |= (1 << STEPPER_DISABLE_BIT(0));
+      STEPPER_DISABLE_PORT(1) |= (1 << STEPPER_DISABLE_BIT(1));
+      STEPPER_DISABLE_PORT(2) |= (1 << STEPPER_DISABLE_BIT(2));
+    }
 }

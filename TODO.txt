@@ -1,0 +1,5 @@
+hacer interrupciones enmascarables por estados
+poner las interrupciones del puerto K
+retornar error de formato no valido cuando se reciben puertos o pines incorrectos en las alarmas
+
+implmentar des energizacion de los motores.

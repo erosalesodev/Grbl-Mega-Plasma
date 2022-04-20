@@ -11,12 +11,16 @@
             void alarmDisable(char port,uint8_t bit);             // Disable alarm  
             void alarmEnable(char port,uint8_t bit);              // Enable alarm
             void movementRestore();                               // Restore movement  
+            void stepperDisable(char *line);                      // Disable stepepr motor  
+            void stepperEnable(char *line);                       // Enable stepepr motor  
 #endif
 
 // Port interruptions
 #define POWER_SOURCE_FAULT_BIT 5
 #define ALARM_TOURCH_SIGNAL_BIT 6
 #define ALARM_OUT_SERVO_X1_BIT 7
+#define ALARM_OUT_SERVO_X2_BIT 5
+#define ALARM_OUT_SERVO_Y_BIT 6
 #define PORTB_PCINTERRUPT_STATE_MASK 0b10111000
 
 bool alarmTriggered;

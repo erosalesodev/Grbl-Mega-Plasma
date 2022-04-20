@@ -121,6 +121,34 @@ Command $$ give the information about several params including `$133`,its show t
 
 The port functionalities implemented allow to carry out new operations such as waiting for signal or reading and writing on pins. This allows adding new functionalities to the hardware such as valve control or waiting for the Arc Ok signal. Also a pwm control and a alarm system are implemented. 
 
+#### M17: Stepper Enable
+
+Reference implementation and documentation can be found [here](https://marlinfw.org/docs/gcode/M017.html): 
+
+**Command use cases** 
+
+`M17			// Enable power on all stepper motors`
+
+`M17 x		// Enable power on specific stepper motors`
+
+**Parameters**
+
+`<x> Stepper motors to enable [X,Y,Z] ` 
+
+#### M18: Stepper Disable
+
+Reference implementation and documentation can be found [here](https://marlinfw.org/docs/gcode/M018.html): 
+
+**Command use cases** 
+
+`M18			// Disable power on all stepper motors`
+
+`M18 x		// Disable power on specific stepper motors`
+
+**Parameters**
+
+`<x> Stepper motors to disable [X,Y,Z] ` 
+
 #### M42: Switch I/O pin
 
 Reference implementation and documentation can be found [here](https://reprap.org/wiki/G-code#M42:_Switch_I.2FO_pin): 
@@ -402,7 +430,27 @@ Normally grbl is not written to interpret the M command and its format with mult
 
 ```c
 // Added ignore process blocks M command implemented
-  while (line[char_counter] != 0 && !(letter=='M' && (int_value==42 || int_value==219 || (int_value>=227 && int_value<=233))))
+  while (line[char_counter] != 0 && !(letter=='M' && (int_value==17 || int_value==18 || int_value==42 || int_value==219 || (int_value>=227 && int_value<=233))))
+```
+
+#### Command M17
+
+Implemented in **port.c** in `stepperEnable()` uses varible declared in **cpu_map.h** for steppers control and assume the enable is active in 1 logic because the driver circuit used.
+
+```c
+ STEPPER_DISABLE_PORT(0) |= (1 << STEPPER_DISABLE_BIT(0));
+ STEPPER_DISABLE_PORT(1) |= (1 << STEPPER_DISABLE_BIT(1));
+ STEPPER_DISABLE_PORT(2) |= (1 << STEPPER_DISABLE_BIT(2));
+```
+
+#### Command M18
+
+Implemented in **port.c** in `stepperEnable()` uses varible declared in **cpu_map.h** for steppers control and assume the disable is active in 0 logic because the driver circuit used.
+
+```c
+ STEPPER_DISABLE_PORT(0) &= ~(1 << STEPPER_DISABLE_BIT(0));
+ STEPPER_DISABLE_PORT(1) &= ~(1 << STEPPER_DISABLE_BIT(1));
+ STEPPER_DISABLE_PORT(2) &= ~(1 << STEPPER_DISABLE_BIT(2));
 ```
 
 #### Command M42

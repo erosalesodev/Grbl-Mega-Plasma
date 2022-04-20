@@ -115,7 +115,7 @@ uint8_t gc_execute_line(char *line)
   if (gc_parser_flags & GC_PARSER_JOG_MOTION) { char_counter = 3; } // Start parsing after `$J=`
   else { char_counter = 0; }
 // Added ignore process blocks M command implemented
-  while (line[char_counter] != 0 && !(letter=='M' && (int_value==42 || int_value==219 || (int_value>=227 && int_value<=233)))) { // Loop until no more g-code words in line.
+  while (line[char_counter] != 0 && !(letter=='M' && (int_value==17 || int_value==18 || int_value==42 || int_value==219 || (int_value>=227 && int_value<=233)))) { // Loop until no more g-code words in line.
 
     // Import the next g-code word, expecting a letter followed by a value. Otherwise, error out.
     letter = line[char_counter];
@@ -275,6 +275,20 @@ uint8_t gc_execute_line(char *line)
               gc_block.modal.override = OVERRIDE_PARKING_MOTION;
               break;
           #endif
+          //-----------------------------------
+          // Implementing M17
+          //-----------------------------------
+          case 17:
+          //Execute M18 function 
+          stepperEnable(line);
+          break;
+          //-----------------------------------
+          // Implementing M18
+          //-----------------------------------
+          case 18:
+          //Execute M18 function 
+          stepperDisable(line);
+          break;
           //-----------------------------------
           // Implementing M42
           //-----------------------------------
